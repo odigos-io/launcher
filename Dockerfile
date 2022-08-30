@@ -1,11 +1,11 @@
-FROM gcc:9.2 AS build
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y cmake libgtest-dev libboost-test-dev && rm -rf /var/lib/apt/lists/* 
-COPY . /launcher
-WORKDIR /launcher
-RUN mkdir build && cd build && cmake .. && make
+FROM golang:1.19 AS build
+WORKDIR /app
+COPY . .
+RUN apt-get update && apt-get install -y nasm
+RUN nasm payload/mmap.asm
+RUN CGO_ENABLED=0 go build -o launcher
 
 FROM busybox
-RUN mkdir /kv-launcher
-COPY --from=build /launcher/build/HelloLIEF-prefix/src/HelloLIEF-build/HelloLIEF /kv-launcher/launch
+WORKDIR /kv-launcher
+COPY --from=build /app/launcher /kv-launcher/launch
 RUN chmod -R go+r /kv-launcher
