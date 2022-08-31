@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"io/ioutil"
 	"log"
+	"sort"
 )
 
 // Bytes - returns the bytes of an Elf file
@@ -151,9 +152,10 @@ func (f *File) Bytes() ([]byte, uint64, error) {
 		}
 	}
 
-	//sortedSections := f.Sections[:]
-	//sort.Slice(sortedSections, func(a, b int) bool { return f.Sections[a].Link < f.Sections[b].Link })
-	for _, s := range f.Sections {
+	sortedSections := make([]*Section, len(f.Sections))
+	copy(sortedSections, f.Sections)
+	sort.Slice(sortedSections, func(a, b int) bool { return sortedSections[a].Offset < sortedSections[b].Offset })
+	for _, s := range sortedSections {
 
 		//log.Printf("Writing section: %s type: %+v\n", s.Name, s.Type)
 		//log.Printf("written: %x offset: %x\n", bytesWritten, s.Offset)
@@ -195,6 +197,7 @@ func (f *File) Bytes() ([]byte, uint64, error) {
 			if err != nil {
 				return nil, 0, err
 			}
+
 			binary.Write(w, f.ByteOrder, section)
 			slen = len(section)
 			//log.Printf("Wrote %s section at %x, length %x\n", s.Name, bytesWritten, slen)
@@ -220,7 +223,6 @@ func (f *File) Bytes() ([]byte, uint64, error) {
 	// Write Section Header Table
 	log.Printf("Start section header table at: %x\n", bytesWritten)
 	for _, s := range f.Sections {
-
 		switch f.Class {
 		case ELFCLASS32:
 			binary.Write(w, f.ByteOrder, &Section32{
