@@ -1,48 +1,5 @@
 package main
 
-//import (
-//	"bytes"
-//	"encoding/binary"
-//	"github.com/Binject/debug/elf"
-//	"io/fs"
-//	"io/ioutil"
-//	"log"
-//	"os"
-//)
-//
-//func main() {
-//	f, err := ioutil.ReadFile(os.Args[1])
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	elfF, err := elf.NewFile(bytes.NewReader(f))
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	data, shoff, err := elfF.Bytes()
-//	if err != nil {
-//		panic(err)
-//	}
-//
-//	log.Printf("bytes written: %d, shoff: %x\n", len(data), shoff)
-//	log.Printf("The 40 byte is: %x\n", data[40:48])
-//	b := make([]byte, 8)
-//	binary.LittleEndian.PutUint64(b, shoff)
-//	j := 0
-//	for i := 40; i < 48; i++ {
-//		data[i] = b[j]
-//		j++
-//	}
-//
-//	log.Printf("The 40 byte is after change: %x\n", data[40:48])
-//	err = ioutil.WriteFile("./eden123", data, fs.ModePerm)
-//	if err != nil {
-//		panic(err)
-//	}
-//}
-
 import (
 	"bytes"
 	_ "embed"
@@ -58,11 +15,6 @@ import (
 var payloadBytes []byte
 
 func main() {
-	//if err := initLogger(); err != nil {
-	//	log.Printf("error init logger: %s\n", err)
-	//	return
-	//}
-
 	if len(os.Args) < 2 {
 		log.Printf("Usage: %s <binary> <args>\n", os.Args[0])
 		return
@@ -80,17 +32,12 @@ func main() {
 		return
 	}
 
-	//output, shoff, err := bj.ElfBinject(input, payloadBytes, &bj.BinjectConfig{
-	//	InjectionMethod: bj.SilvioInject,
-	//})
-
 	elfFile, err := elf.NewFile(bytes.NewReader(input))
 	if err != nil {
 		log.Printf("Error while opening input binary: %s\n", err)
 		return
 	}
 	output, shoff, err := bj.StaticSilvioMethod(elfFile, payloadBytes)
-	//output, shoff, err := elfFile.Bytes()
 	if err != nil {
 		log.Printf("Error: %s\n", err)
 		return
@@ -121,16 +68,3 @@ func main() {
 		return
 	}
 }
-
-//func initLogger() error {
-//	curDir := path.Dir(os.Args[0])
-//	fileName := "launch.log"
-//	logPath := path.Join(curDir, fileName)
-//	f, err := os.Create(logPath)
-//	if err != nil {
-//		return err
-//	}
-//
-//	log.Default().SetOutput(f)
-//	return nil
-//}
